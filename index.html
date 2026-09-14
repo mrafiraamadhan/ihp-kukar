@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>IHP Kukar &mdash; Indeks Harga Pasar Kutai Kartanegara</title>
-<meta name="description" content="Entri harga mingguan dan perhitungan IHK, m-to-m, YtD, YoY, dan andil untuk Indeks Harga Pasar Kabupaten Kutai Kartanegara.">
+<meta name="description" content="Entri harga mingguan oleh pencacah lapangan, geomean otomatis, dan perhitungan IHK, m-to-m, YtD, YoY, serta andil untuk Indeks Harga Pasar Kabupaten Kutai Kartanegara.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:wght@500;600&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -27,8 +27,9 @@
 
 <nav class="tabs"><div class="wrap tabsin" role="tablist">
   <button class="tab" role="tab" id="tab-hasil" aria-selected="true" aria-controls="p-hasil">Hasil</button>
-  <button class="tab" role="tab" id="tab-entri" aria-selected="false" aria-controls="p-entri">Entri harga</button>
+  <button class="tab" role="tab" id="tab-entri" aria-selected="false" aria-controls="p-entri">Entri lapangan</button>
   <button class="tab" role="tab" id="tab-tren" aria-selected="false" aria-controls="p-tren">Tren</button>
+  <button class="tab" role="tab" id="tab-pub" aria-selected="false" aria-controls="p-pub">Bahan publikasi</button>
   <button class="tab" role="tab" id="tab-data" aria-selected="false" aria-controls="p-data">Data &amp; ekspor</button>
   <button class="tab" role="tab" id="tab-atur" aria-selected="false" aria-controls="p-atur">Pengaturan</button>
 </div></nav>
@@ -55,28 +56,35 @@
     <div class="cols">
       <div class="card">
         <div class="hd">
-          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap">
+          <div class="ctl">
             <label class="eyebrow" for="perEntri">Periode</label>
             <select class="sel" id="perEntri"></select>
+            <label class="eyebrow" for="selPenc">Pencacah</label>
+            <select class="sel" id="selPenc"></select>
           </div>
-          <div style="display:flex; gap:8px">
-            <button class="btn small" id="btnKosong" type="button">Kosongkan</button>
+          <div class="ctl">
             <button class="btn small" id="btnSalin" type="button">Salin minggu lalu</button>
+            <button class="btn small" id="btnKosong" type="button">Kosongkan</button>
           </div>
         </div>
-        <div class="tw"><table id="tblEntri"></table></div>
+        <div class="tw scroll" style="max-height:66vh"><table id="tblEntri"></table></div>
       </div>
       <aside class="side">
         <div class="card"><div class="bd">
           <div class="eyebrow">Kelengkapan</div>
           <div class="meter" style="margin:8px 0 12px">
             <div class="bar"><i id="progbar" style="width:0%"></i></div>
-            <span class="num" id="progtxt" style="font-size:12px; font-weight:600">0/20</span>
+            <span class="num" id="progtxt" style="font-size:12px; font-weight:600">0/52</span>
           </div>
           <div id="kvlive"></div>
           <button class="btn primary" id="btnSimpan" type="button" style="width:100%; margin-top:12px" disabled>Simpan periode</button>
           <p class="note" id="savenote" style="margin:8px 0 0"></p>
         </div></div>
+        <div class="card"><div class="hd"><h2 style="font-size:14px">Sidik jari pencacah</h2></div>
+          <div class="bd"><div class="chart" id="chSidik"></div>
+            <p class="note" style="margin:10px 0 0">Selisih rata-rata harga tiap pencacah terhadap geomean seluruh pencacah pada baris yang sama. Batang yang menjulur jauh berarti pencacah itu memantau toko atau kualitas yang berbeda dari yang lain.</p>
+          </div>
+        </div>
         <div class="card"><div class="hd"><h2 style="font-size:14px">Pemeriksaan</h2><span class="chip" id="ischip"><span class="dot"></span><span id="istxt">&mdash;</span></span></div>
           <div class="bd"><div class="issues" id="issues"></div></div>
         </div>
@@ -103,6 +111,84 @@
     </div>
   </section>
 
+  <section class="panel" id="p-pub" role="tabpanel" aria-labelledby="tab-pub" hidden>
+    <div class="grid" style="gap:16px">
+
+      <div class="card"><div class="bd pubhd">
+        <div class="ctl">
+          <label class="eyebrow" for="pubTahun">Tahun</label>
+          <select class="sel" id="pubTahun"></select>
+          <label class="eyebrow" for="pubBulan">Bulan</label>
+          <select class="sel" id="pubBulan"></select>
+        </div>
+        <div class="ctl">
+          <span class="note" id="pubNote"></span>
+          <button class="btn small" id="btnPubSemua" type="button">Salin semua bahan</button>
+        </div>
+      </div></div>
+
+      <div class="figs" id="pubFigs"></div>
+
+      <div class="card">
+        <div class="hd"><h2>Narasi siap salin</h2>
+          <span class="note">Angka sudah terisi — tinggal tempel ke naskah</span></div>
+        <div class="bd" id="pubNarasi"></div>
+      </div>
+
+      <div class="card">
+        <div class="hd"><h2>Tabel 4.2 &middot; IHP, Inflasi dan Andil 20 komoditas</h2>
+          <button class="cp" data-salin="t42">Salin tabel</button></div>
+        <div class="tw scroll" style="max-height:58vh"><table id="pubT42"></table></div>
+      </div>
+
+      <div class="pubgrid">
+        <div class="card">
+          <div class="hd"><h2 style="font-size:14px">Tabel 4.3 &middot; Andil inflasi</h2>
+            <button class="cp" data-salin="t43">Salin</button></div>
+          <div class="bd"><table class="kt" id="pubT43"></table></div>
+        </div>
+        <div class="card">
+          <div class="hd"><h2 style="font-size:14px">Tabel 4.4 &middot; Andil deflasi</h2>
+            <button class="cp" data-salin="t44">Salin</button></div>
+          <div class="bd"><table class="kt" id="pubT44"></table></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="hd"><h2>Gambar 4.1 &middot; Inflasi m-to-m 13 bulan terakhir</h2>
+          <button class="cp" data-salin="g41">Salin angka</button></div>
+        <div class="bd"><div class="chart" id="pubCh41"></div></div>
+      </div>
+
+      <div class="card">
+        <div class="hd"><h2>Tabel 4.1 &middot; IHK dan Inflasi Kaltim</h2>
+          <button class="cp" data-salin="t41">Salin tabel</button></div>
+        <div class="bd">
+          <p class="note" style="margin:0 0 10px">Angka ini datang dari <b>Berita Resmi Statistik BPS Provinsi
+            Kalimantan Timur</b>, bukan dari hitungan kita — isi sekali tiap bulan, lalu narasi 4.1 dan Gambar 4.2
+            di bawah ikut terisi. Tersimpan per bulan.</p>
+          <table class="kt" id="pubT41"></table>
+          <p class="hint" id="pubT41note"></p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="hd"><h2>Gambar 4.2 &middot; Perbandingan m-to-m se-Kaltim</h2>
+          <button class="cp" data-salin="g42">Salin angka</button></div>
+        <div class="bd"><div class="chart" id="pubCh42"></div></div>
+      </div>
+
+      <div class="card">
+        <div class="hd"><h2>Angka untuk infografis</h2>
+          <button class="cp" data-salin="info">Salin</button></div>
+        <div class="bd"><div class="pubinfo" id="pubInfo"></div>
+          <p class="hint">Tujuh bulan terakhir untuk garis infografis ada di bagian Gambar 4.1.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
   <section class="panel" id="p-data" role="tabpanel" aria-labelledby="tab-data" hidden>
     <div class="grid" style="gap:16px">
       <div class="card">
@@ -122,9 +208,23 @@
         </div>
         <div class="tw scroll" style="max-height:60vh"><table id="tblData"></table></div>
       </div>
+      <div class="card" id="cardWarisan">
+        <div class="hd"><h2>Angka yang bergeser setelah rumus dibetulkan</h2>
+          <span class="note">Dibandingkan berkas Excel versi 1</span></div>
+        <div class="tw scroll" style="max-height:46vh"><table id="tblWarisan"></table></div>
+      </div>
       <div class="card"><div class="bd">
         <div class="eyebrow">Catatan metode</div>
         <p class="note" style="margin:8px 0 0">
+          <b>Dua rumus yang sudah dibetulkan.</b>
+          (1) Nilai Konsumsi untuk <b>Juni 2026 M2–M3</b> dan <b>Juli 2026 M2–M3</b> dulu dirantai ke minggu sebelumnya
+          di bulan yang sama, padahal RH-nya dihitung terhadap minggu ke-4 bulan lalu — dua basis yang berbeda.
+          (2) YoY untuk <b>Februari, Maret, dan April 2025</b> dulu menunjuk ke Mei, Juni, dan Juli 2024, bukan ke bulan
+          yang sama tahun sebelumnya; efek menyeret rumus melewati peralihan kolom bulanan ke mingguan pada Mei 2024.
+          Keduanya kini memakai basis yang konsisten.
+          <b>Seluruh angka bulanan minggu ke-4 tetap sama dengan versi 1</b>, kecuali YoY Februari&ndash;April 2025
+          yang memang sedang dibetulkan. Tabel di atas mencatat setiap angka yang bergeser.
+          <br><br>
           Relatif Harga (RH) tiap minggu dihitung terhadap <b>harga minggu ke-4 bulan sebelumnya</b>, dibulatkan 4 desimal.
           Nilai Konsumsi berantai dari jangkar September&nbsp;2022 (NK0 = bobot SBH), dibulatkan 2 desimal.
           IHK = NK &divide; NK0 &times; 100. Andil = bobot bulan lalu &times; m-to-m &divide; 100.
@@ -149,7 +249,7 @@
             <p class="note" id="pesanMasuk" style="color:var(--up-ink); margin:8px 0 0"></p>
           </form>
           <div id="barKeluar" hidden>
-            <div class="kv"><span class="k">Masuk sebagai</span><span class="v" id="emailAktif">—</span></div>
+            <div class="kv"><span class="k">Masuk sebagai</span><span class="v" id="emailAktif">&mdash;</span></div>
             <button class="btn" id="btnKeluar" type="button" style="margin-top:12px; width:100%">Keluar</button>
           </div>
         </div>
@@ -158,8 +258,8 @@
         <div class="eyebrow">Cara kerja penyimpanan</div>
         <p class="note" style="margin:8px 0 0">
           Riwayat harga Desember 2021 sampai Juli 2026 tersimpan di berkas <b>data/baseline.json</b> di repo ini &mdash; tetap, tidak berubah.
-          Entri mulai Agustus 2026 tersimpan di tabel <b>entri_harga</b> di Supabase, dan setiap penyimpanan dicatat di tabel <b>log_perubahan</b>
-          lengkap dengan siapa dan kapan. Jadi kalau ada angka yang dipersoalkan, jejaknya bisa ditelusuri.
+          Entri lapangan tersimpan di tabel <b>entri_lapangan</b> di Supabase: satu baris per periode, isinya 15 harga per baris kualitas.
+          Setiap penyimpanan dicatat di tabel <b>log_perubahan</b> lengkap dengan siapa dan kapan, jadi kalau ada angka yang dipersoalkan jejaknya bisa ditelusuri.
         </p>
       </div></div>
     </div>
