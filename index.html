@@ -711,9 +711,16 @@ function periksa(i,draft){
 
 /* ================= render: hasil ================= */
 function isiSelect(el,filter){
-  const cur=el.value; el.innerHTML='';
+  const daftar=[];
   PER.forEach((p,i)=>{ if(filter&&!filter(i)) return;
-    const o=document.createElement('option'); o.value=i; o.textContent=plabel(p)+(terisi(i)?'':'  · belum diisi'); el.appendChild(o); });
+    daftar.push(i+'\u0002'+plabel(p)+(terisi(i)?'':'  · belum diisi')); });
+  const tanda=daftar.join('\u0001');
+  if(el.dataset.tanda===tanda) return;      // isinya sama persis — jangan disentuh
+  const cur=el.value;
+  el.innerHTML='';
+  daftar.forEach(t=>{ const k=t.split('\u0002');
+    const o=document.createElement('option'); o.value=k[0]; o.textContent=k[1]; el.appendChild(o); });
+  el.dataset.tanda=tanda;
   if(cur&&el.querySelector('option[value="'+cur+'"]')) el.value=cur;
 }
 function renderHasil(){
@@ -1231,16 +1238,27 @@ function isiSelectPub(){
   const ty=document.getElementById('pubTahun'), tb=document.getElementById('pubBulan');
   if(!ty||!tb) return;
   const idx=bulanPub();
-  if(!idx.length){ ty.innerHTML=''; tb.innerHTML='<option value="-1">Belum ada bulan lengkap</option>'; return; }
+  if(!idx.length){
+    if(ty.dataset.tanda!=='kosong'){ ty.innerHTML=''; tb.innerHTML='<option value="-1">Belum ada bulan lengkap</option>';
+      ty.dataset.tanda='kosong'; tb.dataset.tanda='kosong'; }
+    return; }
   const tahun=[...new Set(idx.map(i=>PER[i].y))];
-  const tLama=ty.value;
-  ty.innerHTML=tahun.map(y=>'<option value="'+y+'">'+y+'</option>').join('');
-  ty.value = tahun.includes(+tLama)? tLama : String(tahun[tahun.length-1]);
-  const bLama=tb.value;
+  const tandaT=tahun.join(',');
+  if(ty.dataset.tanda!==tandaT){
+    const tLama=ty.value;
+    ty.innerHTML=tahun.map(y=>'<option value="'+y+'">'+y+'</option>').join('');
+    ty.dataset.tanda=tandaT;
+    ty.value = tahun.indexOf(+tLama)>=0 ? tLama : String(tahun[tahun.length-1]);
+  }
   const pilih=idx.filter(i=>PER[i].y===+ty.value);
-  tb.innerHTML=pilih.map(i=>'<option value="'+i+'">'+NAMA_BULAN[PER[i].m-1]+'</option>').join('');
-  if(bLama&&tb.querySelector('option[value="'+bLama+'"]')) tb.value=bLama;
-  else tb.value=String(pilih[pilih.length-1]);
+  const tandaB=pilih.map(i=>i+':'+PER[i].m).join(',');
+  if(tb.dataset.tanda!==tandaB){
+    const bLama=tb.value;
+    tb.innerHTML=pilih.map(i=>'<option value="'+i+'">'+NAMA_BULAN[PER[i].m-1]+'</option>').join('');
+    tb.dataset.tanda=tandaB;
+    if(bLama&&tb.querySelector('option[value="'+bLama+'"]')) tb.value=bLama;
+    else tb.value=String(pilih[pilih.length-1]);
+  }
 }
 function setupPub(){
   const ty=document.getElementById('pubTahun'), tb=document.getElementById('pubBulan');
@@ -1546,7 +1564,12 @@ async function connect(){
   sb = window.supabase.createClient(cfg.url, cfg.anonKey);
   const { data:{ session } } = await sb.auth.getSession();
   sesi = session || null; renderMasuk();
-  sb.auth.onAuthStateChange((_e,s)=>{ sesi=s||null; renderMasuk(); muatData(); updateEntri(); });
+  sb.auth.onAuthStateChange((_e,s)=>{
+    const idBaru = s && s.user ? s.user.id : null;
+    const idLama = sesi && sesi.user ? sesi.user.id : null;
+    sesi = s || null; renderMasuk(); updateEntri();
+    if(idBaru !== idLama) muatData();          // token diperbarui bukan alasan memuat ulang
+  });
   await muatData();
   sb.channel('ihp_realtime')
     .on('postgres_changes',{ event:'*', schema:'public', table:'entri_lapangan' }, muatData)
