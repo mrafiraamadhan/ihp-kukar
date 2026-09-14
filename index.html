@@ -1468,7 +1468,7 @@ function setupEkspor(){
 function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
   clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2200); }
 function pilihTab(id){
-  ['hasil','entri','tren','pub','data'].forEach(n=>{
+  ['hasil','entri','tren','pub','data','atur'].forEach(n=>{
     const b=document.getElementById('tab-'+n), p=document.getElementById('p-'+n);
     const on=n===id; b.setAttribute('aria-selected',on?'true':'false'); p.hidden=!on; });
   if(id==='tren'){ chartIhk(); chartMtm(); chartAndil(); }
@@ -1505,7 +1505,7 @@ function start(){
   R=hitung();
   document.getElementById('perHasil').addEventListener('change',()=>{ renderHasil(); if(!document.getElementById('p-tren').hidden) chartAndil(); });
   document.getElementById('perEntri').addEventListener('change',e=>setPeriodeEntri(+e.target.value));
-  ['hasil','entri','tren','pub','data'].forEach(n=>document.getElementById('tab-'+n).addEventListener('click',()=>{
+  ['hasil','entri','tren','pub','data','atur'].forEach(n=>document.getElementById('tab-'+n).addEventListener('click',()=>{
     if(n==='entri'&&draftPid===null) setPeriodeEntri(+document.getElementById('perEntri').value); pilihTab(n); }));
   document.getElementById('btnSalin').addEventListener('click',()=>{
     const i=+document.getElementById('perEntri').value;
@@ -1602,6 +1602,9 @@ function renderMasuk(){
   if(!f||!k) return;
   f.hidden = !!sesi; k.hidden = !sesi;
   if(sesi) document.getElementById('emailAktif').textContent = sesi.user.email;
+  const pesan=document.getElementById('pesanMasuk');
+  if(pesan && !sesi && !sb) pesan.textContent =
+    'Sambungan ke Supabase belum siap. Periksa assets/config.js, atau jaringanmu memblokir pustaka Supabase.';
 }
 function setupMasuk(){
   const f=document.getElementById('formMasuk'); if(!f) return;
@@ -1620,6 +1623,7 @@ function setupMasuk(){
   document.getElementById('btnKeluar').addEventListener('click', async ()=>{
     if(sb) await sb.auth.signOut(); toast('Sudah keluar');
   });
+  renderMasuk();          // formulir tampil sejak awal, tidak menunggu Supabase
 }
 document.addEventListener('DOMContentLoaded', start);
 if(document.readyState!=='loading') start();
