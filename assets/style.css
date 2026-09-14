@@ -1,3 +1,4 @@
+
 :root{
   color-scheme: light;
   --ground:#F1F4F3; --surface:#FFFFFF; --surface2:#F7FAF9; --surface3:#EBF0EE;
@@ -160,8 +161,70 @@ tr.tot:hover td{background:var(--accent-soft)}
 .tip b{display:block; font-size:11px; color:var(--ink3); font-weight:600; letter-spacing:.04em; text-transform:uppercase}
 .lgd{display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:var(--ink2); align-items:center}
 .lgd i{display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:5px; vertical-align:-1px}
+.ctl{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+tr.grp td{background:var(--accent-soft); border-bottom:1px solid var(--accent-line); font-weight:700; font-size:12px;
+  letter-spacing:.03em; padding-top:9px; padding-bottom:9px; text-align:left}
+tr.grp td .gwrap{position:sticky; left:10px; display:inline-flex; gap:9px; align-items:baseline; max-width:calc(100vw - 60px)}
+tr.grp td .hk{font-variant-numeric:tabular-nums; font-weight:700}
+tr.grp td .kd{font-family:"IBM Plex Mono",monospace; font-weight:400; color:var(--ink3); font-size:11px}
+/* kolom identitas tetap terlihat saat tabel digeser ke kanan */
+#tblEntri thead th:nth-child(-n+2),
+#tblEntri tbody td:nth-child(-n+2){position:sticky; z-index:3; background:var(--surface)}
+#tblEntri thead th:nth-child(-n+2){z-index:5; background:var(--surface2)}
+#tblEntri thead th:first-child, #tblEntri tbody td:first-child{left:0}
+#tblEntri thead th:nth-child(2), #tblEntri tbody td:nth-child(2){left:190px}
+#tblEntri tbody td:nth-child(2){box-shadow:1px 0 0 var(--line2)}
+#tblEntri tbody tr:hover td:nth-child(-n+2){background:var(--surface2)}
+#tblEntri tr.grp td{position:sticky; left:0; z-index:4; background:var(--accent-soft)}
+#tblEntri tbody tr.grp:hover td{background:var(--accent-soft)}
+.inp.mini{width:88px; padding:4px 6px; font-size:12.5px}
+.lw{display:block; margin-top:3px; font-size:10px; line-height:1.3; color:var(--ink3);
+  font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap}
+.lw.up{color:var(--up-ink)} .lw.down{color:var(--down-ink)} .lw.kuat{font-weight:700}
+.lw.hilang{color:var(--warn-ink); font-weight:700}
+.lw.baru{color:var(--accent); font-weight:600}
+.inp.mini.kosong{border-color:var(--warn-mark); background:var(--warn-soft)}
+.jml{font-variant-numeric:tabular-nums; font-size:12px; white-space:nowrap}
+.jml b{font-weight:700}
+.jml.beda{color:var(--warn-ink)} .jml.beda b{color:var(--warn-ink)}
+.jml.hilang{color:var(--up-ink)} .jml.hilang b{color:var(--up-ink)}
+.jml .sep{color:var(--ink3); font-weight:400; margin:0 3px}
+.lw .d{opacity:.85}
+td.lalu{color:var(--ink3); font-variant-numeric:tabular-nums}
+.strip{display:block}
+.kual{font-size:12.5px}
+.sat{font-size:11px; color:var(--ink3); font-family:"IBM Plex Mono",monospace}
+.pchip{display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:4px; vertical-align:-1px}
+.lgdp{display:flex; gap:12px; flex-wrap:wrap; font-size:11.5px; color:var(--ink2); padding:8px 16px 0}
+.pubhd{display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap}
+.cp{border:1px solid var(--line2); background:var(--surface); color:var(--ink2); border-radius:7px;
+  padding:4px 10px; font-size:11.5px; font-weight:600; cursor:pointer; white-space:nowrap}
+.cp:hover{background:var(--surface3); color:var(--ink)}
+.cp.ok{background:var(--accent-soft); border-color:var(--accent-line); color:var(--accent)}
+.par{position:relative; padding:12px 14px; border:1px solid var(--line); border-radius:9px;
+  background:var(--surface2); font-size:13.5px; line-height:1.65; margin-bottom:10px}
+.par b{font-weight:700}
+.par .cp{position:absolute; top:8px; right:8px}
+.par .isi{padding-right:76px}
+.pubgrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px}
+@media (max-width:880px){.pubgrid{grid-template-columns:minmax(0,1fr)}}
+.kt{width:100%; border-collapse:collapse; font-size:12.5px}
+.kt th,.kt td{padding:5px 7px; border-bottom:1px solid var(--line); text-align:right}
+.kt th:first-child,.kt td:first-child{text-align:left}
+.kt th{font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink3); font-weight:700}
+.kt input{width:78px; text-align:right; padding:3px 6px; border:1px solid var(--line2);
+  border-radius:6px; background:var(--surface); font-size:12.5px; font-variant-numeric:tabular-nums}
+.kt input:focus{border-color:var(--accent-mark)}
+.kt tr.prov td{font-weight:700; background:var(--accent-soft)}
+.pubinfo{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1px; background:var(--line);
+  border:1px solid var(--line); border-radius:var(--r); overflow:hidden}
+.pubinfo div{background:var(--surface); padding:11px 13px}
+.pubinfo .k{font-size:10px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--ink3)}
+.pubinfo .v{font-family:Spectral,serif; font-size:22px; font-weight:600; margin-top:3px; letter-spacing:-.01em}
+.hint{font-size:11.5px; color:var(--ink3); margin:6px 0 0}
 @media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
-/* ---------- pengaturan & masuk ---------- */
-.inp.wide{width:100%; text-align:left; margin-top:4px}
-label.eyebrow{display:block; margin-bottom:2px}
-form#formMasuk .eyebrow{margin-top:0}
+
+
+/* ---------- tambahan versi web publik ---------- */
+.inp.wide{width:100%; text-align:left; font-variant-numeric:normal}
+#formMasuk label.eyebrow{display:block; margin-bottom:4px}
