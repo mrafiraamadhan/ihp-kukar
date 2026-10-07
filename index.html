@@ -628,6 +628,13 @@ function hitung(){
   }
   return {H,RH,NK,NKT,IHK,MTM,YTD,YOY,WN,AND,lengkap};
 }
+function isiSebagian(i){
+  if(i<NBASE) return false;
+  const b=lapPeriode(pid(PER[i]));
+  if(!b) return false;
+  const ada=KOM.some(c=>hargaDariLapangan(b,c.kode)!=null);
+  return ada && !KOM.every(c=>hargaDariLapangan(b,c.kode)!=null);
+}
 function terisi(i){
   const id=pid(PER[i]);
   if(i<NBASE) return true;
@@ -713,7 +720,7 @@ function periksa(i,draft){
 function isiSelect(el,filter){
   const daftar=[];
   PER.forEach((p,i)=>{ if(filter&&!filter(i)) return;
-    daftar.push(i+'\u0002'+plabel(p)+(terisi(i)?'':'  · belum diisi')); });
+    daftar.push(i+'\u0002'+plabel(p)+(terisi(i)?'':(isiSebagian(i)?'  · sebagian':'  · belum diisi'))); });
   const tanda=daftar.join('\u0001');
   if(el.dataset.tanda===tanda) return;      // isinya sama persis — jangan disentuh
   const cur=el.value;
@@ -856,11 +863,12 @@ function updateEntri(){
         if(Math.abs(d)>=0.02) txt = nLalu(q)+' <span class="d">'+sgn(d*100,0)+'%</span>';
         if(Math.abs(d)>=0.35) klas+=' kuat '+(d>0?'up':'down');
         else if(Math.abs(d)>=0.2) klas+=' '+(d>0?'up':'down');
-      } else if(adaQ&&!adaV){ klas+=' hilang'; txt=nLalu(q)+' <span class="d">kosong</span>'; }
+      } else if(adaQ&&!adaV&&isi.length){ klas+=' hilang'; txt=nLalu(q)+' <span class="d">kosong</span>'; }
       else if(!adaQ&&adaV&&nlw>0){ klas+=' baru'; txt='baru'; }
       lel.className=klas; lel.innerHTML=txt;
       const iel=document.getElementById('in-'+id+'-'+x);
-      if(iel) iel.classList.toggle('kosong', adaQ&&!adaV); });
+      // hanya tandai toko yang hilang kalau baris ini memang sudah mulai diisi
+      if(iel) iel.classList.toggle('kosong', adaQ&&!adaV&&isi.length>0); });
   });
   KOM.forEach(c=>{ const el=document.getElementById('hk-'+c.kode); if(!el) return;
     const v=hargaDariLapangan(draft,c.kode);
@@ -877,20 +885,32 @@ function updateEntri(){
   document.getElementById('issues').innerHTML = (head+list.map(o=>'<div class="issue '+(o.lv==='err'?'err':o.lv==='wrn'?'wrn':'')+'"><b>'+esc(o.knm)+' · '+esc(o.nm)+'</b> — '+esc(o.t)+'</div>').join(''))
     || '<p class="note">Semua baris masuk akal terhadap sesama toko dan terhadap minggu lalu.</p>';
   const semua=KOM.every(c=>hargaDariLapangan(draft,c.kode)!=null);
+  const nIsiBaris=KUAL.filter(k=>nIsi(draft[k.kode+'#'+k.ki])>0).length;
+  const nKom=KOM.filter(c=>hargaDariLapangan(draft,c.kode)!=null).length;
   const kv=document.getElementById('kvlive');
-  if(semua && !errs.length){
+  if(semua){
     const sim=simulasi(i,draft);
     const top=KOM.map(c=>({nm:c.nama,a:sim.and[c.kode]})).filter(x=>x.a!=null).sort((a,b)=>Math.abs(b.a)-Math.abs(a.a))[0];
     kv.innerHTML='<div class="kv"><span class="k">IHK Umum</span><span class="v">'+fmt(sim.ihk,2)+'</span></div>'
       +'<div class="kv"><span class="k">Inflasi m-to-m</span><span class="v '+cls(sim.mtm)+'">'+sgn(sim.mtm,2)+'%</span></div>'
       +'<div class="kv"><span class="k">Andil terbesar</span><span class="v '+cls(top?top.a:null)+'">'+(top?esc(top.nm.split('/')[0].slice(0,14))+' '+sgn(top.a,2):'–')+'</span></div>';
-  } else kv.innerHTML='<p class="note">Pratinjau IHK muncul setelah seluruh 20 komoditas punya minimal satu harga.</p>';
-  const bisa = semua && !errs.length;
-  const btn=document.getElementById('btnSimpan'); btn.disabled=!bisa||!sesi;
-  document.getElementById('savenote').textContent = !sesi ? 'Masuk dulu di tab Pengaturan untuk bisa menyimpan.'
-    : (!semua ? 'Masih ada komoditas tanpa harga sama sekali.'
-    : (errs.length ? 'Bereskan '+errs.length+' catatan merah dulu.'
-    : (wrns.length? wrns.length+' peringatan kuning — simpan bila angkanya memang benar.' : 'Siap disimpan.')));
+  } else kv.innerHTML='<p class="note">Pratinjau IHK muncul setelah seluruh 20 komoditas punya minimal satu harga — '
+      + 'saat ini '+nKom+' dari '+KOM.length+'. Entri tetap bisa disimpan sekarang.</p>';
+  const btn=document.getElementById('btnSimpan');
+  btn.disabled = !sesi || nIsiBaris===0;
+  btn.textContent = semua ? 'Simpan periode' : 'Simpan sementara';
+  const catat=[];
+  if(errs.length) catat.push(errs.length+' perlu dicek');
+  if(wrns.length) catat.push(wrns.length+' peringatan');
+  document.getElementById('savenote').textContent = !sesi
+    ? 'Masuk dulu di tab Pengaturan untuk bisa menyimpan.'
+    : (nIsiBaris===0 ? 'Isi minimal satu harga dulu.'
+    : (semua
+        ? (catat.length ? 'Lengkap, '+catat.join(' dan ')+'. Boleh disimpan — catatan di bawah tetap tersimpan sebagai pengingat.'
+                        : 'Lengkap dan bersih. Siap disimpan.')
+        : nIsiBaris+' dari '+KUAL.length+' baris terisi'
+          +(catat.length? ', '+catat.join(' dan ') : '')
+          +'. Boleh disimpan sekarang, sisanya bisa dilanjutkan kapan saja.'));
   chartSidik(draft);
 }
 function strip(arr,g){
@@ -1546,15 +1566,27 @@ async function simpan(){
       return (typeof v==='number'&&isFinite(v)&&v>0)? v : null; });
     if(arr.some(v=>v!=null)) data[key]=arr; });
   KOM.forEach(c=>{ const v=hargaDariLapangan(draft,c.kode); if(v!=null) harga[c.kode]=v; });
-  const btn=document.getElementById('btnSimpan'); btn.disabled=true; btn.textContent='Menyimpan…';
+  if(!Object.keys(data).length){ toast('Belum ada harga untuk disimpan'); return; }
+  const iss=periksa(i,draft);
+  const nErr=iss.filter(o=>o.lv==='err'&&!o.empty).length;
+  const nKosong=iss.filter(o=>o.empty).length;
+  const btn=document.getElementById('btnSimpan'); const labelLama=btn.textContent;
+  btn.disabled=true; btn.textContent='Menyimpan…';
   const { error } = await sb.from('entri_lapangan').upsert({
     periode:id, tahun:p.y, bulan:p.m, minggu:p.w, label:p.label, data, harga,
     baris:Object.keys(data).length, diubah_oleh: sesi.user.email,
     diubah_pada: new Date().toISOString()
   },{ onConflict:'periode' });
   if(error){ console.error(error); toast('Gagal menyimpan: '+error.message); }
-  else { toast(plabel(p)+' tersimpan — '+Object.keys(data).length+' baris kualitas'); await muatData(); }
-  btn.textContent='Simpan periode'; updateEntri();
+  else {
+    const sisa=[];
+    if(nKosong) sisa.push(nKosong+' baris belum diisi');
+    if(nErr) sisa.push(nErr+' perlu dicek');
+    toast(plabel(p)+' tersimpan — '+Object.keys(data).length+' baris'
+      + (sisa.length? '. Masih ada '+sisa.join(' dan ') : ''));
+    await muatData();
+  }
+  btn.textContent=labelLama; updateEntri();
 }
 async function connect(){
   const cfg = window.IHP_CONFIG || {};
@@ -1578,6 +1610,17 @@ async function connect(){
     .subscribe();
   updateEntri();
 }
+function pesanGagal(e){
+  const m = (e && (e.message || e.msg)) ? String(e.message || e.msg) : String(e || '');
+  if(/failed to fetch|networkerror|load failed|ERR_NAME|ENOTFOUND|fetch/i.test(m))
+    return 'Tidak bisa menghubungi Supabase. Proyeknya kemungkinan sedang DIJEDA — '
+         + 'proyek gratis dijeda otomatis setelah 7 hari tanpa aktivitas. '
+         + 'Buka supabase.com/dashboard, pilih proyek IHP, lalu klik Restore project. '
+         + 'Datanya tidak hilang.';
+  if(/invalid login credentials/i.test(m)) return 'Email atau kata sandi salah.';
+  if(/email not confirmed/i.test(m)) return 'Akun ini belum dikonfirmasi. Admin perlu mencentang Auto Confirm User di Supabase.';
+  return m;
+}
 function statusChip(kind,txt){
   const chip=document.getElementById('dbchip');
   chip.className = 'chip'+(kind==='on'?' on':kind==='warn'?' warn':'');
@@ -1585,8 +1628,15 @@ function statusChip(kind,txt){
 }
 async function muatData(){
   if(!sb) return;
-  const a = await sb.from('entri_lapangan').select('periode,data');
-  if(a.error){ console.error(a.error); statusChip('warn','Gagal memuat entri lapangan'); }
+  let a;
+  try{ a = await sb.from('entri_lapangan').select('periode,data'); }
+  catch(e){ a = {error:e}; }
+  if(a.error){
+    console.error(a.error);
+    statusChip('warn','Supabase tidak terjangkau');
+    const pesan=document.getElementById('pesanMasuk');
+    if(pesan && !sesi) pesan.textContent = pesanGagal(a.error);
+  }
   else { OVRLAP={}; (a.data||[]).forEach(r=>{ if(r && r.data) OVRLAP[r.periode]=r.data; }); }
   const b = await sb.from('entri_harga').select('periode,harga');
   if(!b.error){ OVR={}; (b.data||[]).forEach(r=>{ if(r && r.harga) OVR[r.periode]=r.harga; }); }
@@ -1617,7 +1667,7 @@ function setupMasuk(){
       email: document.getElementById('inEmail').value.trim(),
       password: document.getElementById('inSandi').value });
     btn.disabled=false; btn.textContent='Masuk';
-    if(error) pesan.textContent = 'Gagal masuk: '+error.message;
+    if(error) pesan.textContent = pesanGagal(error);
     else { document.getElementById('inSandi').value=''; toast('Berhasil masuk'); }
   });
   document.getElementById('btnKeluar').addEventListener('click', async ()=>{
