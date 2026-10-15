@@ -1,0 +1,327 @@
+# Mengambil berita harga pangan Kaltim & Kutai Kartanegara dua kali sehari,
+# lalu menyimpannya ke data/berita.json untuk tab Berita di aplikasi IHP Kukar.
+# Bisa juga dijalankan manual: tab Actions -> Perbarui berita -> Run workflow.
+name: Perbarui berita
+
+on:
+  schedule:
+    - cron: '0 22 * * *'   # 06.00 WITA
+    - cron: '0 6 * * *'    # 14.00 WITA
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: berita
+  cancel-in-progress: false
+
+jobs:
+  ambil:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ambil berita
+        run: |
+          mkdir -p data
+          python3 - <<'PY'
+          #!/usr/bin/env python3
+          # -*- coding: utf-8 -*-
+          """
+          Pengumpul berita harga pangan untuk IHP Kukar.
+          Dijalankan oleh GitHub Actions dua kali sehari. Hanya pustaka bawaan Python.
+
+          Sumber : Google News RSS dan Bing News RSS (judul, sumber, tanggal, tautan ke artikel asli).
+          Keluaran: data/berita.json — digabung dengan isi lama, disimpan 90 hari terakhir.
+          Pengaman: kalau semua kueri gagal, berkas lama TIDAK ditimpa.
+          """
+          import json, os, re, sys, time, html, hashlib, unicodedata
+          import urllib.request, urllib.parse
+          import xml.etree.ElementTree as ET
+          from email.utils import parsedate_to_datetime
+          from datetime import datetime, timezone, timedelta
+
+          KELUARAN = os.environ.get('BERITA_KELUARAN', 'data/berita.json')
+          SIMPAN_HARI = 90
+          MAKS_ITEM = 1500
+          WITA = timezone(timedelta(hours=8))
+
+          # ---------------------------------------------------------------- kueri
+          KALTIM = '(Kaltim OR "Kalimantan Timur" OR Samarinda OR Balikpapan OR Bontang OR Kukar OR "Kutai Kartanegara" OR Tenggarong)'
+          KUERI = [
+              # komoditas di Kaltim
+              f'harga beras {KALTIM}',
+              f'harga cabai {KALTIM}',
+              f'harga bawang {KALTIM}',
+              f'harga ayam {KALTIM}',
+              f'harga telur {KALTIM}',
+              f'harga "daging sapi" {KALTIM}',
+              f'harga ("minyak goreng" OR minyakita) {KALTIM}',
+              f'harga gula {KALTIM}',
+              f'harga (ikan OR udang) {KALTIM}',
+              f'harga (tahu OR tempe OR kedelai) {KALTIM}',
+              f'harga (terigu OR "mie instan" OR susu) {KALTIM}',
+              f'harga (pisang OR jeruk OR buah) {KALTIM}',
+              f'(sembako OR "bahan pokok" OR "harga pangan") {KALTIM}',
+              'inflasi (Kaltim OR "Kalimantan Timur")',
+              # khusus Kutai Kartanegara
+              '"Kutai Kartanegara" (harga OR pasar OR inflasi OR sembako)',
+              'Kukar (harga OR pasar OR inflasi OR "pasar murah")',
+              'Tenggarong (pasar OR harga)',
+              # nasional, untuk konteks pasokan
+              'harga cabai naik', 'harga beras naik', 'harga bawang merah naik',
+              'harga telur ayam naik', 'harga daging ayam naik',
+              'harga minyak goreng', 'harga gula pasir', 'inflasi BPS bahan makanan',
+          ]
+
+          # ---------------------------------------------------------------- penanda komoditas
+          # Pola sengaja hati-hati: "tahu" saja bisa berarti "mengetahui", "minyak" saja bisa BBM.
+          KOMODITAS = [
+              ('011101001', r'\bberas\b|\bgabah\b|\bpadi\b'),
+              ('011101011', r'\bmie? instan\b|\bmi instan\b|\bindomie\b'),
+              ('011101022', r'\bterigu\b|\bgandum\b'),
+              ('011102009', r'\bdaging ayam\b|(?<!telur )(?<!telor )\bayam ras\b|\bayam potong\b|\bayam broiler\b|\bharga ayam\b|\bbroiler\b'),
+              ('011102016', r'\bdaging sapi\b|\bharga sapi\b|\bsapi potong\b'),
+              ('011103037', r'\bikan kembung\b|\bharga ikan\b|\bikan laut\b|\bnelayan\b|\bikan segar\b'),
+              ('011103085', r'\budang\b'),
+              ('011105002', r'\btelur\b|\btelor\b'),
+              ('011105006', r'\bsusu bubuk\b|\bharga susu\b'),
+              ('011105011', r'\bsusu formula\b|\bsusu bayi\b|\bsusu balita\b|\bsusu anak\b'),
+              ('011107010', r'\btahu tempe\b|\btahu dan tempe\b|\bharga tahu\b|\b(?:pe)?rajin tahu\b|\bkedelai\b'),
+              ('011107012', r'\btempe\b|\bkedelai\b'),
+              ('011108010', r'\bjeruk\b'),
+              ('011108019', r'\bpisang\b'),
+              ('011109003', r'\bbawang merah\b|\bharga bawang\b'),
+              ('011109004', r'\bbawang putih\b|\bharga bawang\b'),
+              # "cabai" tanpa keterangan berarti keduanya; "cabai rawit" hanya rawit, "cabai merah" hanya merah
+              ('011109029', r'\bcab(?:ai|e) merah\b|\bcab(?:ai|e) keriting\b|\bcab(?:ai|e)\b(?! (?:rawit|merah|keriting))'),
+              ('011109030', r'\bcab(?:ai|e) rawit\b|\bcab(?:ai|e)\b(?! (?:rawit|merah|keriting))'),
+              ('011110004', r'\bminyak goreng\b|\bminyakita\b|\bmigor\b'),
+              ('011202006', r'\bgula pasir\b|\bharga gula\b|\bgula\b(?! aren| merah| batu)'),
+          ]
+          UMUM = r'\binflasi\b|\bdeflasi\b|\bihk\b|\bsembako\b|\bbahan pokok\b|\bkebutuhan pokok\b|\bharga pangan\b|\boperasi pasar\b|\bpasar murah\b|\bgerakan pangan murah\b|\bbps\b'
+
+          KUKAR = (r'kutai kartanegara|\bkukar\b|tenggarong|loa janan|loa kulu|samboja|muara badak|anggana|'
+                   r'sanga-?sanga|kota bangun|marang ?kayu|muara jawa|\bsebulu\b|muara kaman|kenohan|'
+                   r'kembang janggut|\btabang\b|muara muntai|muara wis')
+          KALTIMRE = (r'\bkaltim\b|kalimantan timur|samarinda|balikpapan|bontang|\bberau\b|tanjung redeb|'
+                      r'penajam|\bppu\b|\bpaser\b|tanah grogot|kutai barat|\bkubar\b|kutai timur|\bkutim\b|'
+                      r'sangatta|mahakam ulu|\bmahulu\b|ibu kota nusantara|\bikn\b|mahakam|borneo')
+
+          def normal(s):
+              s = unicodedata.normalize('NFKC', s or '').lower()
+              return re.sub(r'\s+', ' ', s).strip()
+
+          def kunci_judul(j):
+              j = normal(j)
+              j = re.sub(r'[^a-z0-9 ]', ' ', j)
+              return re.sub(r'\s+', ' ', j).strip()[:120]
+
+          def bersih(s):
+              s = html.unescape(s or '')
+              s = re.sub(r'<[^>]+>', ' ', s)
+              s = html.unescape(s)
+              return re.sub(r'\s+', ' ', s).replace('\xa0', ' ').strip()
+
+          def tandai(judul, ringkas, sumber):
+              teks = normal(judul + ' ' + (ringkas or ''))
+              kom = [k for k, pola in KOMODITAS if re.search(pola, teks)]
+              umum = bool(re.search(UMUM, teks))
+              sumber_n = normal(sumber or '')
+              if re.search(KUKAR, teks):
+                  wil = 'kukar'
+              elif re.search(KALTIMRE, teks) or re.search(r'kaltim|samarinda|balikpapan|kukar|tenggarong|borneo|kalimantan', sumber_n):
+                  wil = 'kaltim'
+              else:
+                  wil = 'nasional'
+              return kom, umum, wil
+
+          def lokal(tag):
+              return tag.rsplit('}', 1)[-1].lower() if '}' in tag else tag.lower()
+
+          def anak(el, nama):
+              for c in el:
+                  if lokal(c.tag) == nama:
+                      return c
+              return None
+
+          def waktu_iso(s):
+              try:
+                  d = parsedate_to_datetime(s)
+                  if d.tzinfo is None:
+                      d = d.replace(tzinfo=timezone.utc)
+                  return d.astimezone(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+              except Exception:
+                  return None
+
+          def tautan_bing(u):
+              """Bing membungkus tautan asli di parameter url= ; ambil yang asli."""
+              try:
+                  q = urllib.parse.urlparse(u)
+                  if 'bing.com' in q.netloc:
+                      p = urllib.parse.parse_qs(q.query).get('url')
+                      if p:
+                          return p[0]
+              except Exception:
+                  pass
+              return u
+
+          def urai_rss(xml_bytes, asal):
+              """Kembalikan daftar item dari RSS Google News atau Bing News."""
+              out = []
+              root = ET.fromstring(xml_bytes)
+              for it in root.iter():
+                  if lokal(it.tag) != 'item':
+                      continue
+                  judul = bersih((anak(it, 'title').text if anak(it, 'title') is not None else '') or '')
+                  link = (anak(it, 'link').text if anak(it, 'link') is not None else '') or ''
+                  pub = (anak(it, 'pubdate').text if anak(it, 'pubdate') is not None else '') or ''
+                  desk = (anak(it, 'description').text if anak(it, 'description') is not None else '') or ''
+                  src_el = anak(it, 'source')
+                  sumber = bersih(src_el.text) if src_el is not None and src_el.text else ''
+                  if not judul or not link:
+                      continue
+                  # Google: "Judul berita - Nama Media" -> pisahkan
+                  if sumber and judul.endswith(' - ' + sumber):
+                      judul = judul[: -len(' - ' + sumber)].strip()
+                  elif not sumber and ' - ' in judul:
+                      a, b = judul.rsplit(' - ', 1)
+                      if len(b) <= 40:
+                          judul, sumber = a.strip(), b.strip()
+                  ringkas = ''
+                  if asal == 'bing':
+                      link = tautan_bing(link)
+                      ringkas = bersih(desk)
+                  else:
+                      # deskripsi Google News hanya berisi ulang judul + nama media: abaikan
+                      ringkas = ''
+                  if len(ringkas) > 240:
+                      ringkas = ringkas[:237].rsplit(' ', 1)[0] + '…'
+                  w = waktu_iso(pub)
+                  if not w:
+                      continue
+                  out.append({'judul': judul, 'tautan': link.strip(), 'sumber': sumber or ('Bing News' if asal == 'bing' else 'Google News'),
+                              'waktu': w, 'ringkas': ringkas, 'asal': asal})
+              return out
+
+          def unduh(url, ulang=2):
+              req = urllib.request.Request(url, headers={
+                  'User-Agent': 'Mozilla/5.0 (IHP-Kukar news collector; +https://github.com)',
+                  'Accept': 'application/rss+xml, application/xml;q=0.9, */*;q=0.5',
+                  'Accept-Language': 'id-ID,id;q=0.9'})
+              for k in range(ulang + 1):
+                  try:
+                      with urllib.request.urlopen(req, timeout=25) as r:
+                          return r.read()
+                  except Exception as e:
+                      if k == ulang:
+                          raise
+                      time.sleep(2 + 2 * k)
+
+          def url_google(q):
+              return 'https://news.google.com/rss/search?' + urllib.parse.urlencode(
+                  {'q': q + ' when:30d', 'hl': 'id', 'gl': 'ID', 'ceid': 'ID:id'})
+
+          def url_bing(q):
+              return 'https://www.bing.com/news/search?' + urllib.parse.urlencode(
+                  {'q': q, 'format': 'rss', 'setlang': 'id-ID', 'cc': 'ID', 'qft': 'interval="8"'})
+
+          def gabung(lama, baru):
+              """Satu entri per judul; utamakan yang punya ringkasan dan tautan langsung."""
+              peta = {}
+              for it in lama + baru:
+                  k = kunci_judul(it['judul'])
+                  if not k:
+                      continue
+                  ada = peta.get(k)
+                  if ada is None:
+                      peta[k] = dict(it)
+                      continue
+                  if not ada.get('ringkas') and it.get('ringkas'):
+                      ada['ringkas'] = it['ringkas']
+                  if 'news.google.com' in ada.get('tautan', '') and 'news.google.com' not in it.get('tautan', ''):
+                      ada['tautan'] = it['tautan']
+                  if it['waktu'] < ada['waktu']:
+                      ada['waktu'] = it['waktu']
+              return list(peta.values())
+
+          def jalankan(kueri=KUERI, ambil=unduh, sekarang=None):
+              sekarang = sekarang or datetime.now(timezone.utc)
+              baru, berhasil, gagal = [], 0, []
+              for q in kueri:
+                  for asal, mk in (('google', url_google), ('bing', url_bing)):
+                      try:
+                          data = ambil(mk(q))
+                          items = urai_rss(data, asal)
+                          baru.extend(items)
+                          berhasil += 1
+                          print(f'  ok   {asal:6s} {len(items):3d}  {q[:70]}')
+                      except Exception as e:
+                          gagal.append((asal, q, str(e)[:80]))
+                          print(f'  GAGAL {asal:6s}      {q[:70]}  -> {str(e)[:60]}')
+                      time.sleep(0.6)
+
+              if berhasil == 0 or not baru:
+                  print('\nTidak ada satu pun kueri yang berhasil. Berkas lama dibiarkan apa adanya.')
+                  return None
+
+              lama = []
+              if os.path.exists(KELUARAN):
+                  try:
+                      with open(KELUARAN, encoding='utf-8') as f:
+                          lama = json.load(f).get('items', [])
+                  except Exception:
+                      lama = []
+
+              semua = gabung(lama, baru)
+              batas = (sekarang - timedelta(days=SIMPAN_HARI)).strftime('%Y-%m-%dT%H:%M:%SZ')
+              depan = (sekarang + timedelta(days=1)).strftime('%Y-%m-%dT%H:%M:%SZ')
+              semua = [x for x in semua if batas <= x['waktu'] <= depan]
+
+              for x in semua:
+                  kom, umum, wil = tandai(x['judul'], x.get('ringkas', ''), x.get('sumber', ''))
+                  x['komoditas'], x['umum'], x['wilayah'] = kom, umum, wil
+                  x['id'] = hashlib.sha1(kunci_judul(x['judul']).encode()).hexdigest()[:12]
+              # buang yang tidak menyangkut komoditas maupun harga secara umum
+              semua = [x for x in semua if x['komoditas'] or x['umum']]
+              semua.sort(key=lambda x: x['waktu'], reverse=True)
+              semua = semua[:MAKS_ITEM]
+
+              hasil = {
+                  'diperbarui': sekarang.astimezone(WITA).strftime('%Y-%m-%dT%H:%M:%S+08:00'),
+                  'jumlah': len(semua),
+                  'kueri_berhasil': berhasil,
+                  'kueri_gagal': len(gagal),
+                  'items': [{k: x[k] for k in ('id', 'judul', 'tautan', 'sumber', 'waktu', 'ringkas',
+                                                 'komoditas', 'umum', 'wilayah')} for x in semua],
+              }
+              os.makedirs(os.path.dirname(KELUARAN) or '.', exist_ok=True)
+              with open(KELUARAN, 'w', encoding='utf-8') as f:
+                  json.dump(hasil, f, ensure_ascii=False, separators=(',', ':'))
+              hit = {'kukar': 0, 'kaltim': 0, 'nasional': 0}
+              for x in semua:
+                  hit[x['wilayah']] += 1
+              print(f"\n{len(semua)} berita tersimpan  ·  Kukar {hit['kukar']}  ·  Kaltim lain {hit['kaltim']}"
+                    f"  ·  Nasional {hit['nasional']}  ·  kueri berhasil {berhasil}, gagal {len(gagal)}")
+              return hasil
+
+          if __name__ == '__main__':
+              print('Mengambil berita…')
+              r = jalankan()
+              sys.exit(0)
+          PY
+
+      - name: Simpan ke repo
+        run: |
+          git config user.name  "berita-ihp"
+          git config user.email "berita-ihp@users.noreply.github.com"
+          git add data/berita.json
+          if git diff --cached --quiet; then
+            echo "Tidak ada berita baru."
+          else
+            git commit -m "Perbarui berita $(TZ=Asia/Makassar date '+%Y-%m-%d %H:%M') WITA"
+            git pull --rebase --autostash
+            git push
+          fi
