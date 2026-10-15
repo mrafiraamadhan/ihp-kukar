@@ -232,6 +232,52 @@ td.lalu{color:var(--ink3); font-variant-numeric:tabular-nums}
 .pubinfo .k{font-size:10px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--ink3)}
 .pubinfo .v{font-family:Spectral,serif; font-size:22px; font-weight:600; margin-top:3px; letter-spacing:-.01em}
 .hint{font-size:11.5px; color:var(--ink3); margin:6px 0 0}
+/* ---------- berita ---------- */
+.movers{display:grid; grid-template-columns:repeat(auto-fit,minmax(138px,1fr)); gap:10px}
+@media (max-width:560px){ .movers{grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px} .mover{padding:8px 10px} .mover .mv{font-size:18px} .bcari{min-width:0; flex:1 1 100%}
+  .seg{display:grid; grid-template-columns:1fr 1fr; width:100%} .seg button:nth-child(2n){border-right:0} .seg button:nth-child(-n+2){border-bottom:1px solid var(--line)} }
+.mover{font:inherit; text-align:left; cursor:pointer; border:1px solid var(--line); border-radius:9px;
+  padding:10px 12px; background:var(--surface); color:var(--ink); display:grid; gap:2px}
+.mover:hover{border-color:var(--line2); background:var(--surface2)}
+.mover[aria-pressed="true"]{border-color:var(--accent-mark); background:var(--accent-soft)}
+.mover .mn{font-size:12.5px; font-weight:600}
+.mover .mv{font-family:Spectral,Georgia,serif; font-size:21px; font-weight:600; letter-spacing:-.01em; line-height:1.2}
+.mover .mc{font-size:11.5px; color:var(--ink3)}
+.bfil{display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between}
+.seg{display:inline-flex; flex-wrap:wrap; border:1px solid var(--line2); border-radius:9px; overflow:hidden}
+.seg button{font:inherit; border:0; border-right:1px solid var(--line); background:var(--surface); color:var(--ink2);
+  padding:7px 12px; font-size:12.5px; font-weight:600; cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button:hover{background:var(--surface2)}
+.seg button[aria-pressed="true"]{background:var(--accent); color:#fff}
+.bcari{min-width:180px}
+.kchips{display:flex; flex-wrap:wrap; gap:6px; padding:0 16px 15px}
+.kchip{font:inherit; border:1px solid var(--line2); background:var(--surface); color:var(--ink2); border-radius:999px;
+  padding:4px 10px; font-size:12px; font-weight:500; cursor:pointer; display:inline-flex; gap:6px; align-items:baseline}
+.kchip:hover{border-color:var(--ink3)}
+.kchip .n{font-size:10.5px; color:var(--ink3); font-variant-numeric:tabular-nums}
+.kchip[aria-pressed="true"]{background:var(--accent-soft); border-color:var(--accent-line); color:var(--accent); font-weight:600}
+.kchip[aria-pressed="true"] .n{color:var(--accent)}
+.kchip.nol{opacity:.48}
+.blist{display:grid}
+.bt{padding:13px 16px; border-top:1px solid var(--line); display:grid; gap:5px}
+.bt:first-child{border-top:0}
+.bt-meta{font-size:11.5px; color:var(--ink3); display:flex; gap:7px; align-items:center; flex-wrap:wrap}
+.bt-wil{font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; padding:1.5px 6px;
+  border-radius:4px; background:var(--surface3); color:var(--ink2)}
+.bt-wil.kukar{background:var(--accent-soft); color:var(--accent)}
+.bt-wil.nasional{background:transparent; box-shadow:inset 0 0 0 1px var(--line2); color:var(--ink3)}
+.bt-judul{font-size:14.5px; font-weight:600; color:var(--ink); text-decoration:none; line-height:1.42; text-wrap:pretty}
+.bt-judul:hover{color:var(--accent); text-decoration:underline; text-underline-offset:2px}
+.bt-ringkas{font-size:13px; color:var(--ink2); margin:0; line-height:1.55; max-width:78ch}
+.bt-tag{display:flex; gap:5px; flex-wrap:wrap}
+.bt-tag button{font:inherit; border:0; background:var(--surface2); color:var(--ink2); font-size:11px; padding:2px 8px;
+  border-radius:5px; cursor:pointer}
+.bt-tag button:hover{background:var(--surface3); color:var(--ink)}
+.bkosong{padding:22px 16px; color:var(--ink2); font-size:13.5px; line-height:1.6; max-width:70ch}
+.hnews{font:inherit; margin-left:8px; font-size:10.5px; font-weight:600; color:var(--accent); background:none; border:0;
+  cursor:pointer; padding:0; text-decoration:underline; text-underline-offset:2px; white-space:nowrap}
+.hnews.nol{color:var(--ink3); font-weight:500}
 @media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
 
 
@@ -259,6 +305,7 @@ td.lalu{color:var(--ink3); font-variant-numeric:tabular-nums}
   <button class="tab" role="tab" id="tab-hasil" aria-selected="true" aria-controls="p-hasil">Hasil</button>
   <button class="tab" role="tab" id="tab-entri" aria-selected="false" aria-controls="p-entri">Entri lapangan</button>
   <button class="tab" role="tab" id="tab-tren" aria-selected="false" aria-controls="p-tren">Tren</button>
+  <button class="tab" role="tab" id="tab-berita" aria-selected="false" aria-controls="p-berita">Berita</button>
   <button class="tab" role="tab" id="tab-pub" aria-selected="false" aria-controls="p-pub">Bahan publikasi</button>
   <button class="tab" role="tab" id="tab-data" aria-selected="false" aria-controls="p-data">Data &amp; ekspor</button>
   <button class="tab" role="tab" id="tab-atur" aria-selected="false" aria-controls="p-atur">Pengaturan</button>
@@ -338,6 +385,41 @@ td.lalu{color:var(--ink3); font-variant-numeric:tabular-nums}
         <div class="hd"><h2>Andil komoditas</h2><span class="note" id="andilNote"></span></div>
         <div class="bd"><div class="chart" id="chAndil"></div></div>
       </div>
+    </div>
+  </section>
+
+  <section class="panel" id="p-berita" role="tabpanel" aria-labelledby="tab-berita" hidden>
+    <div class="grid" style="gap:16px">
+      <div class="card">
+        <div class="hd"><h2>Penggerak harga</h2><span class="note" id="bMoverNote"></span></div>
+        <div class="bd"><div class="movers" id="bMovers"></div></div>
+      </div>
+      <div class="card">
+        <div class="bd bfil">
+          <div class="seg" role="group" aria-label="Wilayah" id="bWil">
+            <button type="button" data-w="kaltim" aria-pressed="true">Kalimantan Timur</button>
+            <button type="button" data-w="kukar" aria-pressed="false">Kutai Kartanegara</button>
+            <button type="button" data-w="nasional" aria-pressed="false">Nasional</button>
+            <button type="button" data-w="semua" aria-pressed="false">Semua</button>
+          </div>
+          <div class="ctl">
+            <label class="eyebrow" for="bHari">Rentang</label>
+            <select class="sel" id="bHari">
+              <option value="7">7 hari</option>
+              <option value="30" selected>30 hari</option>
+              <option value="90">90 hari</option>
+            </select>
+            <input class="sel bcari" id="bCari" type="search" placeholder="Cari judul atau media" aria-label="Cari berita">
+          </div>
+        </div>
+        <div class="kchips" id="bKom" role="group" aria-label="Komoditas"></div>
+      </div>
+      <div class="card">
+        <div class="hd"><h2 id="bJudul">Berita</h2><span class="note" id="bJumlah"></span></div>
+        <div class="blist" id="bList"></div>
+        <div class="bd" id="bMore" hidden><button class="btn small" id="bMoreBtn" type="button">Tampilkan lebih banyak</button></div>
+      </div>
+      <p class="note" id="bFoot" style="margin:0"></p>
     </div>
   </section>
 
@@ -745,7 +827,9 @@ function renderHasil(){
   document.getElementById('hasilSub').textContent='20 komoditas terpantau';
   const rows=KOM.map(c=>{
     const k=c.kode;
-    return '<tr><td class="l"><span class="nm">'+esc(c.nama)+'</span><span class="kode mono">'+k+'</span></td>'
+    const nb=hitungBeritaKom(k);
+    return '<tr><td class="l"><span class="nm">'+esc(c.nama)+'</span><span class="kode mono">'+k+'</span>'
+      +'<button class="hnews'+(nb?'':' nol')+'" type="button" data-kom="'+k+'">'+(nb? nb+' berita' : 'berita')+'</button></td>'
       +'<td class="num">'+fmtRp(R.H[k][i])+'</td>'
       +'<td class="num">'+fmt(R.IHK[k][i],2)+'</td>'
       +'<td class="num '+cls(R.MTM[k][i])+'">'+sgn(R.MTM[k][i],2)+'</td>'
@@ -1311,6 +1395,189 @@ async function simpanKaltim(id){
   else if(el) el.textContent='Tersimpan '+new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
 }
 
+
+/* ================= berita ================= */
+const KOM_PENDEK={'011101001':'Beras','011101011':'Mie Instan','011101022':'Tepung Terigu','011102009':'Daging Ayam',
+  '011102016':'Daging Sapi','011103037':'Ikan Kembung','011103085':'Udang','011105002':'Telur Ayam',
+  '011105006':'Susu Bubuk','011105011':'Susu Balita','011107010':'Tahu','011107012':'Tempe','011108010':'Jeruk',
+  '011108019':'Pisang','011109003':'Bawang Merah','011109004':'Bawang Putih','011109029':'Cabai Merah',
+  '011109030':'Cabai Rawit','011110004':'Minyak Goreng','011202006':'Gula Pasir'};
+const FB={wil:'kaltim', kom:'semua', hari:30, cari:'', tampil:40};
+let BERITA=null, BERITA_STATUS='memuat';
+const BULAN_PENDEK=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+function normB(s){ return String(s||'').toLowerCase().normalize('NFKC').replace(/\s+/g,' ').trim(); }
+function sumberBerita(){
+  const out=[], m=location.hostname.match(/^([a-z0-9-]+)\.github\.io$/i);
+  const repo=location.pathname.split('/').filter(Boolean)[0];
+  if(m && repo) out.push('https://raw.githubusercontent.com/'+m[1]+'/'+repo+'/main/data/berita.json');
+  out.push('data/berita.json');
+  return out;
+}
+async function muatBerita(){
+  const t=Math.floor(Date.now()/600000);      // tembus cache tiap 10 menit
+  for(const u of sumberBerita()){
+    try{
+      const r=await fetch(u+'?t='+t,{cache:'no-store'});
+      if(!r.ok) continue;
+      const d=await r.json();
+      if(d && Array.isArray(d.items)){
+        BERITA=d; BERITA_STATUS='ok';
+        renderHasil();
+        if(!document.getElementById('p-berita').hidden) renderBerita();
+        return;
+      }
+    }catch(e){}
+  }
+  BERITA_STATUS='gagal';
+  if(!document.getElementById('p-berita').hidden) renderBerita();
+}
+function cocokWil(x,w){
+  w = w || FB.wil;
+  if(w==='semua') return true;
+  if(w==='kaltim') return x.wilayah==='kaltim' || x.wilayah==='kukar';
+  return x.wilayah===w;
+}
+function saringBerita(abaikanKom){
+  if(!BERITA) return [];
+  const batas = FB.hari ? Date.now()-FB.hari*864e5 : 0;
+  const q = normB(FB.cari);
+  return BERITA.items.filter(x=>{
+    if(!cocokWil(x)) return false;
+    if(batas && Date.parse(x.waktu)<batas) return false;
+    if(!abaikanKom){
+      if(FB.kom==='umum' && !x.umum) return false;
+      if(FB.kom!=='semua' && FB.kom!=='umum' && !(x.komoditas||[]).includes(FB.kom)) return false;
+    }
+    if(q && !normB(x.judul+' '+(x.ringkas||'')+' '+(x.sumber||'')).includes(q)) return false;
+    return true;
+  });
+}
+function hitungBeritaKom(kode){
+  if(!BERITA) return 0;
+  const batas = Date.now()-FB.hari*864e5;
+  let n=0;
+  for(const x of BERITA.items){
+    if(cocokWil(x) && Date.parse(x.waktu)>=batas && (x.komoditas||[]).includes(kode)) n++;
+  }
+  return n;
+}
+function bulanPenggerak(){
+  for(let i=NPER-1;i>=0;i--){ const p=PER[i];
+    if(lastSlot[p.y+'-'+p.m]===i && R.IHK.UMUM[i]!=null) return i; }
+  return -1;
+}
+function waktuBerita(iso){
+  const d=new Date(iso); if(isNaN(d)) return '';
+  const w=new Date(d.getTime()+8*3600e3);            // tampilkan dalam WITA
+  const abs=w.getUTCDate()+' '+BULAN_PENDEK[w.getUTCMonth()]+' '+w.getUTCFullYear();
+  const hari=Math.floor((Date.now()-d.getTime())/864e5);
+  const rel = hari<=0 ? 'hari ini' : hari===1 ? 'kemarin' : hari+' hari lalu';
+  return abs+' · '+rel;
+}
+function tautanAman(u){ return /^https?:\/\//i.test(u||'') ? u : '#'; }
+function namaWil(w){ return w==='kukar'?'Kukar' : w==='kaltim'?'Kaltim' : 'Nasional'; }
+function renderBerita(){
+  const host=document.getElementById('bList'); if(!host) return;
+  // ---- segmen wilayah
+  document.querySelectorAll('#bWil button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.w===FB.wil?'true':'false'));
+  document.getElementById('bHari').value=String(FB.hari);
+  if(document.getElementById('bCari').value!==FB.cari) document.getElementById('bCari').value=FB.cari;
+
+  // ---- penggerak harga bulan terakhir yang lengkap
+  const im=bulanPenggerak(), mv=document.getElementById('bMovers');
+  if(im<0){ mv.innerHTML='<p class="note">Belum ada bulan yang lengkap.</p>'; document.getElementById('bMoverNote').textContent=''; }
+  else{
+    document.getElementById('bMoverNote').textContent='Perubahan m-to-m terbesar, '+NAMA_BULAN[PER[im].m-1]+' '+PER[im].y+' · klik untuk melihat beritanya';
+    const top=KOM.map(c=>({k:c.kode, v:R.MTM[c.kode][im]})).filter(x=>x.v!=null&&isFinite(x.v))
+      .sort((a,b)=>Math.abs(b.v)-Math.abs(a.v)).slice(0,6);
+    mv.innerHTML=top.map(x=>{ const n=hitungBeritaKom(x.k);
+      return '<button class="mover" type="button" data-kom="'+x.k+'" aria-pressed="'+(FB.kom===x.k)+'">'
+        +'<span class="mn">'+esc(KOM_PENDEK[x.k]||x.k)+'</span>'
+        +'<span class="mv '+cls(x.v)+'">'+sgn(x.v,1)+'%</span>'
+        +'<span class="mc">'+(BERITA? (n? n+' berita' : 'belum ada berita') : '…')+'</span></button>'; }).join('');
+  }
+
+  // ---- status muat
+  const foot=document.getElementById('bFoot');
+  if(!BERITA){
+    document.getElementById('bKom').innerHTML='';
+    document.getElementById('bJumlah').textContent='';
+    document.getElementById('bMore').hidden=true;
+    host.innerHTML = BERITA_STATUS==='memuat'
+      ? '<div class="bkosong">Memuat berita…</div>'
+      : '<div class="bkosong"><b>Berita belum tersedia.</b> Berita dikumpulkan otomatis dua kali sehari oleh GitHub. '
+        + 'Kalau fitur ini baru dipasang, buka repo di GitHub &rarr; tab <b>Actions</b> &rarr; <b>Perbarui berita</b> &rarr; '
+        + '<b>Run workflow</b>, tunggu sekitar satu menit, lalu muat ulang halaman ini.</div>';
+    foot.textContent='';
+    return;
+  }
+
+  // ---- chip komoditas, lengkap dengan jumlahnya
+  const dasar=saringBerita(true);
+  const hit={semua:dasar.length, umum:0}; KOM.forEach(c=>hit[c.kode]=0);
+  dasar.forEach(x=>{ if(x.umum) hit.umum++; (x.komoditas||[]).forEach(k=>{ if(k in hit) hit[k]++; }); });
+  const chip=(k,label)=>'<button class="kchip'+(hit[k]?'':' nol')+'" type="button" data-kom="'+k+'" aria-pressed="'+(FB.kom===k)+'">'
+      +esc(label)+'<span class="n">'+hit[k]+'</span></button>';
+  document.getElementById('bKom').innerHTML = chip('semua','Semua') + chip('umum','Inflasi & harga umum')
+    + KOM.map(c=>chip(c.kode, KOM_PENDEK[c.kode]||c.nama)).join('');
+
+  // ---- daftar
+  const daftar=saringBerita(false);
+  const labelKom = FB.kom==='semua' ? 'Semua berita' : FB.kom==='umum' ? 'Inflasi & harga umum' : (KOM_PENDEK[FB.kom]||FB.kom);
+  const labelWil = {kaltim:'Kalimantan Timur', kukar:'Kutai Kartanegara', nasional:'Nasional', semua:'semua wilayah'}[FB.wil];
+  document.getElementById('bJudul').textContent = labelKom+' · '+labelWil;
+  document.getElementById('bJumlah').textContent = daftar.length+' berita, '+FB.hari+' hari terakhir';
+  if(!daftar.length){
+    const saran = FB.wil==='kukar' ? ' Berita yang menyebut Kutai Kartanegara memang lebih jarang — coba <b>Kalimantan Timur</b>.'
+               : (FB.hari<90 ? ' Coba perpanjang rentang ke <b>90 hari</b>.' : ' Coba wilayah <b>Nasional</b> untuk konteks pasokan.');
+    host.innerHTML='<div class="bkosong">Tidak ada berita yang cocok.'+saran+'</div>';
+    document.getElementById('bMore').hidden=true;
+  } else {
+    host.innerHTML = daftar.slice(0,FB.tampil).map(x=>{
+      const tags=(x.komoditas||[]).map(k=>'<button type="button" data-kom="'+k+'">'+esc(KOM_PENDEK[k]||k)+'</button>').join('')
+                + (x.umum && !(x.komoditas||[]).length ? '<button type="button" data-kom="umum">Inflasi & harga umum</button>' : '');
+      return '<article class="bt">'
+        + '<div class="bt-meta"><span class="bt-wil '+esc(x.wilayah)+'">'+namaWil(x.wilayah)+'</span>'
+        + '<span>'+esc(x.sumber||'')+'</span><span>·</span><span>'+esc(waktuBerita(x.waktu))+'</span></div>'
+        + '<a class="bt-judul" href="'+esc(tautanAman(x.tautan))+'" target="_blank" rel="noopener noreferrer">'+esc(x.judul)+'</a>'
+        + (x.ringkas ? '<p class="bt-ringkas">'+esc(x.ringkas)+'</p>' : '')
+        + (tags ? '<div class="bt-tag">'+tags+'</div>' : '')
+        + '</article>'; }).join('');
+    const sisa=daftar.length-FB.tampil;
+    document.getElementById('bMore').hidden = sisa<=0;
+    if(sisa>0) document.getElementById('bMoreBtn').textContent='Tampilkan '+Math.min(40,sisa)+' lagi dari '+sisa;
+  }
+  const dt=BERITA.diperbarui ? new Date(BERITA.diperbarui) : null;
+  foot.innerHTML = 'Diperbarui '+(dt&&!isNaN(dt) ? esc(waktuBerita(BERITA.diperbarui).split(' · ')[0]+' pukul '
+      + String(new Date(dt.getTime()+8*3600e3).getUTCHours()).padStart(2,'0')+'.'
+      + String(new Date(dt.getTime()+8*3600e3).getUTCMinutes()).padStart(2,'0')+' WITA') : '–')
+    + ' &middot; '+(BERITA.jumlah||BERITA.items.length)+' berita tersimpan &middot; sumber: Google Berita dan Bing News. '
+    + 'Judul dan isi berita milik masing-masing media; klik judul untuk membaca di situs aslinya.';
+}
+function bukaBeritaKomoditas(kode){ FB.kom=kode; FB.tampil=40; pilihTab('berita'); window.scrollTo({top:0}); }
+function setupBerita(){
+  const p=document.getElementById('p-berita'); if(!p) return;
+  document.getElementById('bWil').addEventListener('click',e=>{
+    const b=e.target.closest('button[data-w]'); if(!b) return;
+    FB.wil=b.dataset.w; FB.tampil=40; renderBerita(); renderHasil(); });
+  document.getElementById('bHari').addEventListener('change',e=>{ FB.hari=+e.target.value; FB.tampil=40; renderBerita(); renderHasil(); });
+  let tCari=null;
+  document.getElementById('bCari').addEventListener('input',e=>{
+    clearTimeout(tCari); const v=e.target.value;
+    tCari=setTimeout(()=>{ FB.cari=v; FB.tampil=40; renderBerita(); },180); });
+  p.addEventListener('click',e=>{
+    const b=e.target.closest('[data-kom]'); if(!b || !p.contains(b)) return;
+    const k=b.dataset.kom;
+    FB.kom = (b.classList.contains('mover') && FB.kom===k) ? 'semua' : k;   // klik penggerak lagi = lepas saringan
+    FB.tampil=40; renderBerita();
+    if(!b.classList.contains('kchip')) document.getElementById('bList').scrollIntoView({block:'nearest'});
+  });
+  document.getElementById('bMoreBtn').addEventListener('click',()=>{ FB.tampil+=40; renderBerita(); });
+  document.getElementById('tblHasil').addEventListener('click',e=>{
+    const b=e.target.closest('.hnews'); if(b) bukaBeritaKomoditas(b.dataset.kom); });
+  muatBerita();
+}
+
 /* ================= grafik ================= */
 function monthEnds(n){ const out=[];
   for(let i=0;i<NPER;i++){ const p=PER[i]; if(lastSlot[p.y+'-'+p.m]===i && R.lengkap[i]) out.push(i); }
@@ -1488,11 +1755,12 @@ function setupEkspor(){
 function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
   clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2200); }
 function pilihTab(id){
-  ['hasil','entri','tren','pub','data','atur'].forEach(n=>{
+  ['hasil','entri','tren','berita','pub','data','atur'].forEach(n=>{
     const b=document.getElementById('tab-'+n), p=document.getElementById('p-'+n);
     const on=n===id; b.setAttribute('aria-selected',on?'true':'false'); p.hidden=!on; });
   if(id==='tren'){ chartIhk(); chartMtm(); chartAndil(); }
   if(id==='pub') renderPub();
+  if(id==='berita') renderBerita();
   if(id==='data'){ renderData(); renderWarisan(); }
 }
 function renderBanner(){
@@ -1508,7 +1776,11 @@ function refresh(keep){
   const hv=hs.value, ev=en.value, dv=df.value;
   isiSelect(hs, i=>R.lengkap[i]||terisi(i));
   isiSelect(en, i=>i>=NBASE-4);
-  df.innerHTML=''; PER.forEach((p,i)=>{ if(p.weekly&&p.w!==1) return; const o=document.createElement('option'); o.value=i; o.textContent=plabel(p); df.appendChild(o); });
+  { const dft=[]; PER.forEach((p,i)=>{ if(p.weekly&&p.w!==1) return; dft.push(i+'\u0002'+plabel(p)); });
+    const tanda=dft.join('\u0001');
+    if(df.dataset.tanda!==tanda){ df.innerHTML='';
+      dft.forEach(t=>{ const k=t.split('\u0002'); const o=document.createElement('option'); o.value=k[0]; o.textContent=k[1]; df.appendChild(o); });
+      df.dataset.tanda=tanda; } }
   if(hv&&hs.querySelector('option[value="'+hv+'"]')) hs.value=hv; else hs.value=String(idxTerakhir());
   if(ev&&en.querySelector('option[value="'+ev+'"]')) en.value=ev; else en.value=String(idxBerikut());
   if(dv&&df.querySelector('option[value="'+dv+'"]')) df.value=dv; else { const opts=[...df.options]; df.value=opts.length?opts[Math.max(0,opts.length-8)].value:'0'; }
@@ -1517,6 +1789,7 @@ function refresh(keep){
   if(!document.getElementById('p-tren').hidden){ chartIhk(); chartMtm(); chartAndil(); }
   isiSelectPub();
   if(!document.getElementById('p-pub').hidden) renderPub();
+  if(!document.getElementById('p-berita').hidden) renderBerita();
   if(!document.getElementById('p-data').hidden){ renderData(); renderWarisan(); }
 }
 let sudahMulai=false;
@@ -1525,7 +1798,7 @@ function start(){
   R=hitung();
   document.getElementById('perHasil').addEventListener('change',()=>{ renderHasil(); if(!document.getElementById('p-tren').hidden) chartAndil(); });
   document.getElementById('perEntri').addEventListener('change',e=>setPeriodeEntri(+e.target.value));
-  ['hasil','entri','tren','pub','data','atur'].forEach(n=>document.getElementById('tab-'+n).addEventListener('click',()=>{
+  ['hasil','entri','tren','berita','pub','data','atur'].forEach(n=>document.getElementById('tab-'+n).addEventListener('click',()=>{
     if(n==='entri'&&draftPid===null) setPeriodeEntri(+document.getElementById('perEntri').value); pilihTab(n); }));
   document.getElementById('btnSalin').addEventListener('click',()=>{
     const i=+document.getElementById('perEntri').value;
@@ -1552,6 +1825,7 @@ function start(){
     if(!document.getElementById('p-tren').hidden){ chartIhk(); chartMtm(); chartAndil(); } });
   setupEkspor();
   setupPub();
+  setupBerita();
   setupMasuk();
   refresh();
   pilihTab('hasil');
